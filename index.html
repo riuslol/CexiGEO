@@ -189,6 +189,7 @@
       <button class="scmode active" data-m="build">Chain builder</button>
       <button class="scmode" data-m="sheet">Cheatsheet</button>
       <button class="scmode" data-m="lookup">WS lookup</button>
+      <button class="scmode" data-m="find">Find a chain</button>
     </div>
 
     <div class="scpane" id="sc-build">
@@ -215,6 +216,22 @@
           <input id="fname" placeholder="search name…" style="flex:1;min-width:160px">
         </div>
         <table class="sctable"><thead><tr><th>Weapon skill</th><th>Type</th><th>Properties</th></tr></thead><tbody id="lookupbody"></tbody></table>
+      </div>
+    </div>
+
+    <div class="scpane" id="sc-find" style="display:none">
+      <div class="scwrap"><h3>Find a skillchain</h3>
+        <div class="tag" style="margin-bottom:12px">Pick one weapon skill and the chain you want to make &mdash; see every weapon skill that pairs with it (e.g. <i>something + Requiescat = Darkness</i>).</div>
+        <div class="filters">
+          <select id="f_ws"></select>
+          <select id="f_sc"></select>
+          <select id="f_pos">
+            <option value="either">either position</option>
+            <option value="close">my WS closes (… &rarr; mine)</option>
+            <option value="open">my WS opens (mine &rarr; …)</option>
+          </select>
+        </div>
+        <div id="findresult"></div>
       </div>
     </div>
   </div>
@@ -651,6 +668,27 @@ document.getElementById("addws").onclick=()=>{chain.push(null); renderChain();};
   [fw,fp].forEach(e=>e.onchange=draw); fn.oninput=draw; draw();
 })();
 
+/* --- find a skillchain --- */
+const SCRESULTS=[...new Set(Object.values(SC).flatMap(o=>Object.values(o.c)))].sort((a,b)=>SC[b].l-SC[a].l||a.localeCompare(b));
+(function(){
+  const fws=document.getElementById("f_ws"), fsc=document.getElementById("f_sc"), fpos=document.getElementById("f_pos"), out=document.getElementById("findresult");
+  fws.innerHTML=wsOptions(null);
+  fsc.innerHTML='<option value="">\u2014 target skillchain \u2014</option>'+SCRESULTS.map(r=>`<option value="${r}">${r} (${EL[r]})</option>`).join("");
+  function draw(){
+    const ki=fws.value, target=fsc.value, pos=fpos.value;
+    if(ki===""||target===""){ out.innerHTML='<div class="scnone">Pick a weapon skill and a target skillchain.</div>'; return; }
+    const K=WS[+ki]; const close=[],open=[];
+    if(pos==="either"||pos==="close") for(let i=0;i<WS.length;i++){ if(combine(WS[i].p,K.p)[0]===target) close.push(WS[i]); }
+    if(pos==="either"||pos==="open")  for(let i=0;i<WS.length;i++){ if(combine(K.p,WS[i].p)[0]===target) open.push(WS[i]); }
+    let html="";
+    if(close.length){ html+=`<div class="tag" style="margin:10px 0 6px">Openers that make <b>${target}</b> when closed by <b>${K.n}</b> (${close.length}):</div>`;
+      html+=close.map(x=>`<div class="scstep"><span class="chip">${x.n}</span> <span class="scel">${WT[x.s]||""}</span> <span class="arrow">\u2192</span> <span class="chip">${K.n}</span> <span class="arrow">=</span> ${scPill(target)}</div>`).join(""); }
+    if(open.length){ html+=`<div class="tag" style="margin:14px 0 6px"><b>${K.n}</b> opens into these to make <b>${target}</b> (${open.length}):</div>`;
+      html+=open.map(y=>`<div class="scstep"><span class="chip">${K.n}</span> <span class="arrow">\u2192</span> <span class="chip">${y.n}</span> <span class="scel">${WT[y.s]||""}</span> <span class="arrow">=</span> ${scPill(target)}</div>`).join(""); }
+    out.innerHTML=html||`<div class="scnone">No weapon skill pairs with ${K.n} to make ${target}.</div>`;
+  }
+  [fws,fsc,fpos].forEach(e=>e.addEventListener("change",draw)); draw();
+})();
 /* --- tab + subtab switching --- */
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
