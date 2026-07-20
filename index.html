@@ -86,6 +86,34 @@
   .geoplus .v{color:var(--gold)} .geoskill .v{color:var(--geo)} .hbskill .v{color:var(--hb)}
   .gnote{color:var(--dim);font-size:12px;margin-top:12px;line-height:1.6}
   .foot{color:var(--dim);font-size:12px;margin-top:22px;text-align:center}
+  /* tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:18px}
+  .tab{padding:9px 18px;border-radius:10px;background:var(--panel);border:1px solid var(--line);color:var(--dim);
+    cursor:pointer;font-weight:700;font-size:14px}
+  .tab.active{background:var(--accent);border-color:var(--accent);color:#0b1017}
+  html.light .tab.active{color:#fff}
+  .tabpane{display:none} .tabpane.active{display:block}
+  /* skillchain */
+  .sc-sub{display:flex;gap:6px;margin-bottom:16px}
+  .scmode{padding:7px 14px;border-radius:9px;background:var(--panel);border:1px solid var(--line);color:var(--dim);cursor:pointer;font-size:13px;font-weight:600}
+  .scmode.active{color:var(--ink);border-color:var(--accent)}
+  .scstep{display:flex;align-items:center;gap:10px;margin:8px 0;flex-wrap:wrap}
+  .scstep select{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 10px;font-size:14px;min-width:230px}
+  .scstep .ix{font-family:var(--mono);color:var(--dim);font-size:12px;width:20px}
+  .chip{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--line);color:var(--dim)}
+  .arrow{color:var(--dim);font-size:18px;margin:2px 6px}
+  .scres{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-family:var(--mono);padding:6px 12px;border-radius:9px}
+  .l1{background:rgba(92,200,255,.14);color:var(--accent)}
+  .l2{background:rgba(185,140,255,.16);color:#b98cff}
+  .l3{background:rgba(232,192,106,.18);color:var(--gold)}
+  .scnone{color:var(--dim);font-family:var(--mono);font-size:13px}
+  .scel{font-weight:400;font-size:12px;opacity:.85}
+  .scwrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+  .scwrap h3{margin:0 0 10px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
+  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .filters select,.filters input{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 10px;font-size:14px}
+  .sctable{width:100%;border-collapse:collapse} .sctable td,.sctable th{padding:7px 10px;border-bottom:1px solid var(--line);font-size:13px;text-align:left}
+  .sctable th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
   @media(max-width:660px){.eff{display:none} th.h-per,td.c-per{display:none}} @media(max-width:520px){th.h-ret,td.c-ret{display:none}}
 </style>
 </head>
@@ -95,6 +123,11 @@
   <h1>CatsEyeXI <span>Geomancer</span> — Potency by Skill (Lv.75)</h1>
   <div class="tag">Set your Geomancy &amp; Handbell skill · watch spells step through tiers · values verified in-game</div>
 
+  <div class="tabs">
+    <button class="tab active" data-t="geo">Geomancy</button>
+    <button class="tab" data-t="sc">Skillchains</button>
+  </div>
+  <div class="tabpane active" id="pane-geo">
   <div class="controls">
     <div class="skills">
       <div class="sk geo">
@@ -135,6 +168,43 @@
   </div>
   <div class="gnote">
     Max skill: Geomancy <b>225 + 16 merit + 59 gear = 300</b> · Handbell <b>225 + 16 + 39 = 280</b>
+  </div>
+
+  </div><!-- /pane-geo -->
+
+  <div class="tabpane" id="pane-sc">
+    <div class="sc-sub">
+      <button class="scmode active" data-m="build">Chain builder</button>
+      <button class="scmode" data-m="sheet">Cheatsheet</button>
+      <button class="scmode" data-m="lookup">WS lookup</button>
+    </div>
+
+    <div class="scpane" id="sc-build">
+      <div class="scwrap"><h3>Build a chain</h3>
+        <div class="tag" style="margin-bottom:12px">Pick weapon skills in order. Each step's skillchain property opens the next. WS1 → WS2 forms the first chain; that result then opens WS3, and so on.</div>
+        <div id="chainsteps"></div>
+        <button class="btn" id="addws" style="margin-top:6px">+ Add weapon skill</button>
+      </div>
+      <div class="scwrap"><h3>Resulting chain</h3><div id="chainresult"></div></div>
+    </div>
+
+    <div class="scpane" id="sc-sheet" style="display:none">
+      <div class="scwrap"><h3>Skillchain cheatsheet — opener → closer = result</h3>
+        <div class="tag" style="margin-bottom:10px">Every valid property pairing. Order matters (some are reciprocal, some one-way).</div>
+        <table class="sctable"><thead><tr><th>Opener property</th><th>Closer property</th><th>Skillchain</th><th>Element</th></tr></thead><tbody id="sheetbody"></tbody></table>
+      </div>
+    </div>
+
+    <div class="scpane" id="sc-lookup" style="display:none">
+      <div class="scwrap"><h3>Weapon skill lookup</h3>
+        <div class="filters">
+          <select id="fweap"></select>
+          <select id="fprop"></select>
+          <input id="fname" placeholder="search name…" style="flex:1;min-width:160px">
+        </div>
+        <table class="sctable"><thead><tr><th>Weapon skill</th><th>Type</th><th>Properties</th></tr></thead><tbody id="lookupbody"></tbody></table>
+      </div>
+    </div>
   </div>
 
   <div class="foot">Endpoints: SE dev data (Camate). Model verified in-game: Fury, Barrier, Refresh, Regen, Precision, CHR.</div>
@@ -207,6 +277,315 @@ const tb=document.getElementById("themebtn");
 function setTheme(light){document.documentElement.classList.toggle("light",light); tb.textContent=light?"☀️":"🌙"; try{localStorage.setItem("cexigeo-theme",light?"light":"dark");}catch(e){}}
 tb.addEventListener("click",()=>setTheme(!document.documentElement.classList.contains("light")));
 try{setTheme(localStorage.getItem("cexigeo-theme")==="light");}catch(e){}
+
+/* ===== Skillchain tab ===== */
+const SC={
+ Radiance:{l:3,c:{Light:"Light"}}, Umbra:{l:3,c:{Darkness:"Darkness"}},
+ Light:{l:3,c:{Light:"Light"}}, Darkness:{l:3,c:{Darkness:"Darkness"}},
+ Gravitation:{l:2,c:{Distortion:"Darkness",Fragmentation:"Fragmentation"}},
+ Fragmentation:{l:2,c:{Fusion:"Light",Distortion:"Distortion"}},
+ Distortion:{l:2,c:{Gravitation:"Darkness",Fusion:"Fusion"}},
+ Fusion:{l:2,c:{Fragmentation:"Light",Gravitation:"Gravitation"}},
+ Compression:{l:1,c:{Transfixion:"Transfixion",Detonation:"Detonation"}},
+ Liquefaction:{l:1,c:{Impaction:"Fusion",Scission:"Scission"}},
+ Induration:{l:1,c:{Reverberation:"Fragmentation",Compression:"Compression",Impaction:"Impaction"}},
+ Reverberation:{l:1,c:{Induration:"Induration",Impaction:"Impaction"}},
+ Transfixion:{l:1,c:{Scission:"Distortion",Reverberation:"Reverberation",Compression:"Compression"}},
+ Scission:{l:1,c:{Liquefaction:"Liquefaction",Reverberation:"Reverberation",Detonation:"Detonation"}},
+ Detonation:{l:1,c:{Compression:"Gravitation",Scission:"Compression"}},
+ Impaction:{l:1,c:{Liquefaction:"Liquefaction",Detonation:"Detonation"}},
+};
+const EL={Transfixion:"Light",Compression:"Dark",Liquefaction:"Fire",Scission:"Earth",Reverberation:"Water",Induration:"Ice",Impaction:"Lightning",Detonation:"Wind",Fusion:"Fire/Light",Fragmentation:"Wind/Lightning",Gravitation:"Earth/Dark",Distortion:"Ice/Water",Light:"Fire/Wind/Lightning/Light",Darkness:"Earth/Ice/Water/Dark",Radiance:"Fire/Wind/Lightning/Light",Umbra:"Earth/Ice/Water/Dark"};
+const WT={0:"Other",1:"Hand-to-Hand",2:"Dagger",3:"Sword",4:"Great Sword",5:"Axe",6:"Great Axe",7:"Scythe",8:"Polearm",9:"Katana",10:"Great Katana",11:"Club",12:"Staff",25:"Archery",26:"Marksmanship"};
+const WS=[
+["Combo",1,["Impaction"]],
+["Shoulder Tackle",1,["Impaction","Reverberation"]],
+["One Inch Punch",1,["Compression"]],
+["Backhand Blow",1,["Detonation"]],
+["Raging Fists",1,["Impaction"]],
+["Spinning Attack",1,["Liquefaction","Impaction"]],
+["Howling Fist",1,["Transfixion","Impaction"]],
+["Dragon Kick",1,["Fragmentation"]],
+["Asuran Fists",1,["Gravitation","Liquefaction"]],
+["Final Heaven",1,["Light","Fusion"]],
+["Ascetic's Fury",1,["Fusion","Transfixion"]],
+["Stringing Pummel",1,["Gravitation","Liquefaction"]],
+["Tornado Kick",1,["Induration","Impaction","Detonation"]],
+["Victory Smite",1,["Light","Fragmentation"]],
+["Shijin Spiral",1,["Fusion","Reverberation"]],
+["Wasp Sting",2,["Scission"]],
+["Viper Bite",2,["Scission"]],
+["Shadowstitch",2,["Reverberation"]],
+["Gust Slash",2,["Detonation"]],
+["Cyclone",2,["Detonation","Impaction"]],
+["Dancing Edge",2,["Scission","Detonation"]],
+["Shark Bite",2,["Fragmentation"]],
+["Evisceration",2,["Gravitation","Transfixion"]],
+["Mercy Stroke",2,["Darkness","Gravitation"]],
+["Mandalic Stab",2,["Fusion","Compression"]],
+["Mordant Rime",2,["Fragmentation","Distortion"]],
+["Pyrrhic Kleos",2,["Distortion","Scission"]],
+["Aeolian Edge",2,["Scission","Detonation","Impaction"]],
+["Rudra's Storm",2,["Darkness","Distortion"]],
+["Fast Blade",3,["Scission"]],
+["Burning Blade",3,["Liquefaction"]],
+["Red Lotus Blade",3,["Liquefaction","Detonation"]],
+["Flat Blade",3,["Impaction"]],
+["Shining Blade",3,["Scission"]],
+["Seraph Blade",3,["Scission"]],
+["Circle Blade",3,["Reverberation","Impaction"]],
+["Vorpal Blade",3,["Scission","Impaction"]],
+["Swift Blade",3,["Gravitation"]],
+["Savage Blade",3,["Fragmentation","Scission"]],
+["Knights of Round",3,["Light","Fusion"]],
+["Death Blossom",3,["Fragmentation","Distortion"]],
+["Atonement",3,["Fusion","Reverberation"]],
+["Expiacion",3,["Distortion","Scission"]],
+["Hard Slash",4,["Scission"]],
+["Power Slash",4,["Transfixion"]],
+["Frostbite",4,["Induration"]],
+["Freezebite",4,["Induration","Detonation"]],
+["Shockwave",4,["Reverberation"]],
+["Crescent Moon",4,["Scission"]],
+["Sickle Moon",4,["Scission","Impaction"]],
+["Spinning Slash",4,["Fragmentation"]],
+["Ground Strike",4,["Fragmentation","Distortion"]],
+["Scourge",4,["Light","Fusion"]],
+["Herculean Slash",4,["Induration","Impaction","Detonation"]],
+["Torcleaver",4,["Light","Distortion"]],
+["Resolution",4,["Fragmentation","Scission"]],
+["Dimidiation",4,["Light","Fragmentation"]],
+["Fimbulvetr",4,["Detonation","Compression","Distortion"]],
+["Raging Axe",5,["Detonation","Impaction"]],
+["Smash Axe",5,["Induration","Reverberation"]],
+["Gale Axe",5,["Detonation"]],
+["Avalanche Axe",5,["Scission","Impaction"]],
+["Spinning Axe",5,["Liquefaction","Scission","Impaction"]],
+["Rampage",5,["Scission"]],
+["Calamity",5,["Scission","Impaction"]],
+["Mistral Axe",5,["Fusion"]],
+["Decimation",5,["Fusion","Reverberation"]],
+["Onslaught",5,["Darkness","Gravitation"]],
+["Primal Rend",5,["Gravitation","Reverberation"]],
+["Bora Axe",5,["Scission","Detonation"]],
+["Cloudsplitter",5,["Darkness","Fragmentation"]],
+["Ruinator",5,["Distortion","Detonation"]],
+["Blitz",5,["Liquefaction","Impaction","Fragmentation"]],
+["Shield Break",6,["Impaction"]],
+["Iron Tempest",6,["Scission"]],
+["Sturmwind",6,["Reverberation","Scission"]],
+["Armor Break",6,["Impaction"]],
+["Keen Edge",6,["Compression"]],
+["Weapon Break",6,["Impaction"]],
+["Raging Rush",6,["Induration","Reverberation"]],
+["Full Break",6,["Distortion"]],
+["Steel Cyclone",6,["Distortion","Detonation"]],
+["Metatron Torment",6,["Light","Fusion"]],
+["King's Justice",6,["Fragmentation","Scission"]],
+["Fell Cleave",6,["Scission","Detonation"]],
+["Ukko's Fury",6,["Light","Fragmentation"]],
+["Upheaval",6,["Fusion","Compression"]],
+["Disaster",6,["Transfixion","Scission","Gravitation"]],
+["Slice",7,["Scission"]],
+["Dark Harvest",7,["Reverberation"]],
+["Shadow of Death",7,["Induration","Reverberation"]],
+["Nightmare Scythe",7,["Compression","Scission"]],
+["Spinning Scythe",7,["Reverberation","Scission"]],
+["Vorpal Scythe",7,["Transfixion","Scission"]],
+["Guillotine",7,["Induration"]],
+["Cross Reaper",7,["Distortion"]],
+["Spiral Hell",7,["Distortion","Scission"]],
+["Catastrophe",7,["Darkness","Gravitation"]],
+["Insurgency",7,["Fusion","Compression"]],
+["Infernal Scythe",7,["Compression","Reverberation"]],
+["Quietus",7,["Darkness","Distortion"]],
+["Entropy",7,["Gravitation","Reverberation"]],
+["Origin",7,["Induration","Reverberation","Fusion"]],
+["Double Thrust",8,["Transfixion"]],
+["Thunder Thrust",8,["Transfixion","Impaction"]],
+["Raiden Thrust",8,["Transfixion","Impaction"]],
+["Leg Sweep",8,["Impaction"]],
+["Penta Thrust",8,["Compression"]],
+["Vorpal Thrust",8,["Reverberation","Transfixion"]],
+["Skewer",8,["Transfixion","Impaction"]],
+["Wheeling Thrust",8,["Fusion"]],
+["Impulse Drive",8,["Gravitation","Induration"]],
+["Geirskogul",8,["Light","Distortion"]],
+["Drakesbane",8,["Fusion","Transfixion"]],
+["Sonic Thrust",8,["Transfixion","Scission"]],
+["Camlann's Torment",8,["Light","Fragmentation"]],
+["Stardiver",8,["Gravitation","Transfixion"]],
+["Diarmuid",8,["Transfixion","Scission","Gravitation"]],
+["Blade: Rin",9,["Transfixion"]],
+["Blade: Retsu",9,["Scission"]],
+["Blade: Teki",9,["Reverberation"]],
+["Blade: To",9,["Induration","Detonation"]],
+["Blade: Chi",9,["Impaction","Transfixion"]],
+["Blade: Ei",9,["Compression"]],
+["Blade: Jin",9,["Impaction","Detonation"]],
+["Blade: Ten",9,["Gravitation"]],
+["Blade: Ku",9,["Gravitation","Transfixion"]],
+["Blade: Metsu",9,["Darkness","Fragmentation"]],
+["Blade: Kamu",9,["Fragmentation","Compression"]],
+["Blade: Yu",9,["Reverberation","Scission"]],
+["Blade: Hi",9,["Darkness","Gravitation"]],
+["Blade: Shun",9,["Fusion","Impaction"]],
+["Zesho Meppo",9,["Induration","Reverberation","Fusion"]],
+["Tachi: Enpi",10,["Transfixion","Scission"]],
+["Tachi: Hobaku",10,["Induration"]],
+["Tachi: Goten",10,["Transfixion","Impaction"]],
+["Tachi: Kagero",10,["Liquefaction"]],
+["Tachi: Jinpu",10,["Scission","Detonation"]],
+["Tachi: Koki",10,["Reverberation","Impaction"]],
+["Tachi: Yukikaze",10,["Induration","Detonation"]],
+["Tachi: Gekko",10,["Distortion","Reverberation"]],
+["Tachi: Kasha",10,["Fusion","Compression"]],
+["Tachi: Kaiten",10,["Light","Fragmentation"]],
+["Tachi: Rana",10,["Gravitation","Induration"]],
+["Tachi: Ageha",10,["Compression","Scission"]],
+["Tachi: Fudo",10,["Light","Distortion"]],
+["Tachi: Shoha",10,["Fragmentation","Compression"]],
+["Tachi: Suikawari",0,["Fusion"]],
+["Tachi: Mumei",10,["Detonation","Compression","Distortion"]],
+["Shining Strike",11,["Impaction"]],
+["Seraph Strike",11,["Impaction"]],
+["Brainshaker",11,["Reverberation"]],
+["Skullbreaker",11,["Induration","Reverberation"]],
+["True Strike",11,["Detonation","Impaction"]],
+["Judgment",11,["Impaction"]],
+["Hexa Strike",11,["Fusion"]],
+["Black Halo",11,["Fragmentation","Compression"]],
+["Randgrith",11,["Light","Fragmentation"]],
+["Flash Nova",11,["Induration","Reverberation"]],
+["Realmrazer",11,["Fusion","Impaction"]],
+["Exudation",11,["Darkness","Fragmentation"]],
+["Heavy Swing",12,["Impaction"]],
+["Rock Crusher",12,["Impaction"]],
+["Earth Crusher",12,["Detonation","Impaction"]],
+["Starburst",12,["Compression","Reverberation"]],
+["Sunburst",12,["Compression","Reverberation"]],
+["Shell Crusher",12,["Detonation"]],
+["Full Swing",12,["Liquefaction","Impaction"]],
+["Retribution",12,["Gravitation","Reverberation"]],
+["Gate of Tartarus",12,["Darkness","Distortion"]],
+["Vidohunir",12,["Fragmentation","Distortion"]],
+["Garland of Bliss",12,["Fusion","Reverberation"]],
+["Omniscience",12,["Gravitation","Transfixion"]],
+["Cataclysm",12,["Compression","Reverberation"]],
+["Shattersoul",12,["Gravitation","Induration"]],
+["Flaming Arrow",25,["Liquefaction","Transfixion"]],
+["Piercing Arrow",25,["Reverberation","Transfixion"]],
+["Dulling Arrow",25,["Liquefaction","Transfixion"]],
+["Sidewinder",25,["Reverberation","Transfixion","Detonation"]],
+["Blast Arrow",25,["Induration","Transfixion"]],
+["Arching Arrow",25,["Fusion"]],
+["Empyreal Arrow",25,["Fusion","Transfixion"]],
+["Namas Arrow",25,["Light","Distortion"]],
+["Refulgent Arrow",25,["Reverberation","Transfixion"]],
+["Jishnu's Radiance",25,["Light","Fusion"]],
+["Apex Arrow",25,["Fragmentation","Transfixion"]],
+["Sarv",25,["Transfixion","Scission","Gravitation"]],
+["Hot Shot",26,["Reverberation","Transfixion"]],
+["Split Shot",26,["Reverberation","Transfixion"]],
+["Sniper Shot",26,["Liquefaction","Transfixion"]],
+["Slug Shot",26,["Reverberation","Transfixion","Detonation"]],
+["Blast Shot",26,["Induration","Transfixion"]],
+["Heavy Shot",26,["Fusion"]],
+["Detonator",26,["Fusion","Transfixion"]],
+["Coronach",26,["Darkness","Fragmentation"]],
+["Trueflight",26,["Fragmentation","Scission"]],
+["Leaden Salute",26,["Gravitation","Transfixion"]],
+["Numbing Shot",26,["Induration","Impaction","Detonation"]],
+["Wildfire",26,["Darkness","Gravitation"]],
+["Last Stand",26,["Fusion","Reverberation"]],
+["Terminus",26,["Induration","Reverberation","Fusion"]],
+["Exenterator",2,["Fragmentation","Scission"]],
+["Chant du Cygne",3,["Light","Distortion"]],
+["Requiescat",3,["Gravitation","Scission"]],
+["Knights of Rotund",3,["Light"]],
+["Final Paradise",1,["Light"]],
+["Fast Blade II",3,["Fusion"]],
+["Dragon Blow",1,["Distortion"]],
+["Maru Kala",1,["Detonation","Compression","Distortion"]],
+["Ruthless Stroke",2,["Liquefaction","Impaction","Fragmentation"]],
+["Imperator",3,["Detonation","Compression","Distortion"]],
+["Dagda",11,["Transfixion","Scission","Gravitation"]],
+["Oshala",12,["Induration","Reverberation","Fusion"]],
+["Uriel Blade",3,["Light","Fragmentation"]],
+["Glory Slash",3,["Light","Fusion"]]
+].map(w=>({n:w[0],s:w[1],p:w[2]})).sort((a,b)=>a.s-b.s||a.n.localeCompare(b.n));
+
+function combine(openers,closers){
+  const r=[];
+  for(const o of openers) for(const c of closers){ if(SC[o]&&SC[o].c[c]) r.push(SC[o].c[c]); }
+  return [...new Set(r)].sort((a,b)=>SC[b].l-SC[a].l);
+}
+function scPill(name){return `<span class="scres l${SC[name].l}">${name} <span class="scel">(${EL[name]})</span></span>`;}
+function wsOptions(sel){
+  let last=null,out='<option value="">— select a weapon skill —</option>';
+  for(let i=0;i<WS.length;i++){const w=WS[i];
+    if(w.s!==last){ if(last!==null)out+='</optgroup>'; out+=`<optgroup label="${WT[w.s]||"Other"}">`; last=w.s; }
+    out+=`<option value="${i}"${sel==i?" selected":""}>${w.n}</option>`;
+  }
+  return out+'</optgroup>';
+}
+
+/* --- chain builder --- */
+let chain=[null,null];
+function renderChain(){
+  const box=document.getElementById("chainsteps");
+  box.innerHTML=chain.map((v,i)=>`<div class="scstep"><span class="ix">${i+1}.</span><select data-i="${i}">${wsOptions(v)}</select>${chain.length>2?`<button class="chip" data-del="${i}" style="cursor:pointer">✕</button>`:""}</div>`).join("");
+  box.querySelectorAll("select").forEach(se=>se.onchange=e=>{chain[+e.target.dataset.i]=e.target.value===""?null:+e.target.value; renderChain();});
+  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=e=>{chain.splice(+e.target.dataset.del,1); if(chain.length<2)chain.push(null); renderChain();});
+  // results
+  const rb=document.getElementById("chainresult"); let html="", prev=null;
+  for(let i=0;i<chain.length-1;i++){
+    const a=chain[i], b=chain[i+1];
+    if(a===null||b===null){html+=`<div class="scnone">Select WS ${i+1} and ${i+2} to see the chain…</div>`; break;}
+    const openers = i===0 ? WS[a].p : [prev];
+    const res=combine(openers, WS[b].p);
+    const openLbl = i===0 ? `<span class="chip">${WS[a].n}</span>` : scPill(prev);
+    if(res.length===0){ html+=`<div class="scstep">${openLbl} <span class="arrow">→</span> <span class="chip">${WS[b].n}</span> <span class="arrow">=</span> <span class="scnone">no skillchain ✕</span></div>`; break; }
+    html+=`<div class="scstep">${openLbl} <span class="arrow">→</span> <span class="chip">${WS[b].n}</span> <span class="arrow">=</span> ${res.map(scPill).join(" ")}</div>`;
+    prev=res[0];
+  }
+  rb.innerHTML=html||`<div class="scnone">Add weapon skills to build a chain.</div>`;
+}
+document.getElementById("addws").onclick=()=>{chain.push(null); renderChain();};
+
+/* --- cheatsheet --- */
+(function(){const rows=[];
+  for(const o in SC) for(const c in SC[o].c){ rows.push([o,c,SC[o].c[c]]); }
+  rows.sort((a,b)=>SC[b[2]].l-SC[a[2]].l || a[0].localeCompare(b[0]));
+  document.getElementById("sheetbody").innerHTML=rows.map(([o,c,r])=>
+   `<tr><td><span class="chip">${o}</span></td><td><span class="chip">${c}</span></td><td>${scPill(r)}</td><td class="scel">${EL[r]}</td></tr>`).join("");
+})();
+
+/* --- WS lookup --- */
+(function(){
+  const fw=document.getElementById("fweap"), fp=document.getElementById("fprop"), fn=document.getElementById("fname"), tb=document.getElementById("lookupbody");
+  fw.innerHTML='<option value="">All weapon types</option>'+[...new Set(WS.map(w=>w.s))].map(s=>`<option value="${s}">${WT[s]||"Other"}</option>`).join("");
+  fp.innerHTML='<option value="">All properties</option>'+Object.keys(SC).map(p=>`<option value="${p}">${p}</option>`).join("");
+  function draw(){
+    const w=fw.value, p=fp.value, n=fn.value.toLowerCase();
+    const rows=WS.filter(x=>(w===""||x.s==w)&&(p===""||x.p.includes(p))&&(n===""||x.n.toLowerCase().includes(n)));
+    tb.innerHTML=rows.map(x=>`<tr><td>${x.n}</td><td class="scel">${WT[x.s]||"Other"}</td><td>${x.p.map(pr=>`<span class="chip">${pr}</span>`).join(" ")}</td></tr>`).join("")||'<tr><td colspan="3" class="scnone">No matches.</td></tr>';
+  }
+  [fw,fp].forEach(e=>e.onchange=draw); fn.oninput=draw; draw();
+})();
+
+/* --- tab + subtab switching --- */
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".tabpane").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active"); document.getElementById("pane-"+t.dataset.t).classList.add("active");
+});
+document.querySelectorAll(".scmode").forEach(m=>m.onclick=()=>{
+  document.querySelectorAll(".scmode").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".scpane").forEach(x=>x.style.display="none");
+  m.classList.add("active"); document.getElementById("sc-"+m.dataset.m).style.display="block";
+});
+renderChain();
 $("maxbtn").addEventListener("click",()=>{$("geo").value=300; $("hb").value=280; $("hbT").checked=true; render();});
 render();
 </script>
