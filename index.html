@@ -55,6 +55,10 @@
   .per{font-family:var(--mono);color:var(--dim);font-size:12px;text-align:right;white-space:nowrap}
   .next{font-family:var(--mono);font-size:12.5px;text-align:right;white-space:nowrap}
   .next .at{color:var(--accent)} .next .need{color:var(--dim)} .next .max{color:var(--good)} .next .sm{color:var(--dim)}
+  .ret{text-align:right;white-space:nowrap;min-width:118px}
+  .ret .rn{font-family:var(--mono);font-size:12.5px;color:var(--dim)}
+  .rbar{height:6px;background:var(--panel2);border-radius:4px;overflow:hidden;border:1px solid #232b35;margin-top:4px}
+  .rbar>i{display:block;height:100%;border-radius:4px}
   .name{font-weight:600}.eff{color:var(--dim);font-size:12px}
   /* gear */
   .gearwrap{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:4px}
@@ -72,7 +76,7 @@
   .geoplus .v{color:var(--gold)} .geoskill .v{color:var(--geo)} .hbskill .v{color:var(--hb)}
   .gnote{color:var(--dim);font-size:12px;margin-top:12px;line-height:1.6}
   .foot{color:var(--dim);font-size:12px;margin-top:22px;text-align:center}
-  @media(max-width:660px){.eff{display:none} th.h-per,td.c-per{display:none}}
+  @media(max-width:660px){.eff{display:none} th.h-per,td.c-per{display:none}} @media(max-width:520px){th.h-ret,td.c-ret{display:none}}
 </style>
 </head>
 <body>
@@ -108,9 +112,9 @@
   </div>
 
   <div class="sect">Enhancing — buffs</div>
-  <table><thead><tr><th>Spell</th><th style="text-align:right">Your value</th><th class="h-per" style="text-align:right">Per tier</th><th style="text-align:right">Next tier</th></tr></thead><tbody id="buffs"></tbody></table>
+  <table><thead><tr><th>Spell</th><th style="text-align:right">Your value</th><th class="h-per" style="text-align:right">Per tier</th><th style="text-align:right">Next tier</th><th class="h-ret" style="text-align:right">Return / +100 skill</th></tr></thead><tbody id="buffs"></tbody></table>
   <div class="sect">Enfeebling — debuffs</div>
-  <table><thead><tr><th>Spell</th><th style="text-align:right">Your value</th><th class="h-per" style="text-align:right">Per tier</th><th style="text-align:right">Next tier</th></tr></thead><tbody id="debuffs"></tbody></table>
+  <table><thead><tr><th>Spell</th><th style="text-align:right">Your value</th><th class="h-per" style="text-align:right">Per tier</th><th style="text-align:right">Next tier</th><th class="h-ret" style="text-align:right">Return / +100 skill</th></tr></thead><tbody id="debuffs"></tbody></table>
 
   <div class="sect">CatsEyeXI Geomancy gear</div>
   <div class="gearwrap">
@@ -127,16 +131,16 @@
 
 <script>
 const BUFFS=[
- ["Fury","Attack","%",4.6,34.7,"lin",900,null,2.7],["Barrier","Defense","%",9.7,39.8,"lin",900,null,4.6],
- ["Haste","delay-","%",2.4,29.9,"lin",900,null,1.1],["Precision","Accuracy"," ACC",1,50,"step",900,18.37,5],
+ ["Fury","Attack","%",4.6,34.7,"lin",900,30,2.7],["Barrier","Defense","%",9.7,39.8,"lin",900,30,4.6],
+ ["Haste","delay-","%",2.4,29.9,"lin",900,33,1.1],["Precision","Accuracy"," ACC",1,50,"step",900,18.37,5],
  ["Voidance","Evasion"," EVA",1,65,"step",900,14.06,6],["Focus","M.Acc"," M.ACC",1,50,"step",900,18.37,5],
  ["Attunement","M.Eva"," M.EVA",1,65,"step",900,14.06,6],["Acumen","M.Atk"," MAB",3,15,"step",900,75,3],
  ["Fend","M.Def"," MDB",5,20,"step",900,60,4],["Regen","HP","/tick",1,30,"step",580,20,2],
  ["Refresh","MP","/tick",1,6,"step",900,180,1],["STR·DEX·…","Stat"," stat",1,25,"step",900,37.5,2],
 ];
 const DEBUFFS=[
- ["Poison","DoT","/tick",1,30,"step",600,20.7,3],["Slow","delay+","%",0.9,14.9,"lin",900,null,0.5],
- ["Paralyze","rate","%",1.0,15.0,"lin",900,null,1.0],["Frailty","Defense-","%",2.7,14.8,"lin",900,null,2.7],
+ ["Poison","DoT","/tick",1,30,"step",600,20.7,3],["Slow","delay+","%",0.9,14.9,"lin",900,64,0.5],
+ ["Paralyze","rate","%",1.0,15.0,"lin",900,64,1.0],["Frailty","Defense-","%",2.7,14.8,"lin",900,74,2.7],
  ["Slip","Acc-"," ACC",1,65,"step",900,14.06,6],["Torpor","Eva-"," EVA",1,50,"step",900,18.37,5],
  ["Vex","M.Acc-"," M.ACC",1,65,"step",900,14.06,6],["Languor","M.Eva-"," M.EVA",1,50,"step",900,18.37,5],
 ];
@@ -154,15 +158,23 @@ function value(sp,skill,idris){const[,,,lo,hi,model,cap,spt,ginc]=sp;
   return v+(idris?2*ginc:0);}
 function fmt(sp,v){return sp[5]==="lin"?v.toFixed(1):Math.round(v).toString();}
 function nextTier(sp,skill){const[,,,lo,hi,model,cap,spt]=sp;
-  if(model==="lin")return `<span class="sm">smooth · no tiers</span>`;
+  if(model==="lin"){ if(skill>=900)return `<span class="max">MAX</span>`;
+    const t=Math.floor(skill/spt), bp=Math.min(Math.ceil((t+1)*spt),900);
+    return `<span class="at">${bp}</span> <span class="need">(+${bp-skill})</span>`; }
   const N=hi-lo,t=Math.floor(skill/spt); if(t>=N)return `<span class="max">MAX</span>`;
   const bp=Math.ceil((t+1)*spt); return `<span class="at">${bp}</span> <span class="need">(+${bp-skill})</span>`;}
+function retCell(sp){const spt=sp[7], unit=sp[2]||"";
+  const gain=100/spt;                       // potency gained per +100 combined skill
+  const g=gain.toFixed(1)+(unit==="%"?"%":(unit||""));
+  const eff=Math.max(.04,Math.min(1,14/spt)); const pct=Math.round(eff*100);
+  const col=eff>0.6?"var(--good)":eff>0.3?"var(--gold)":"#ff8a8a";
+  return `<td class="c-ret ret"><span class="rn">${g}</span><div class="rbar"><i style="width:${pct}%;background:${col}"></i></div></td>`;}
 function row(sp,skill,idris){const[name,eff,unit,lo,hi,model,cap,spt,ginc]=sp;
   const v=value(sp,skill,idris), idrAdd=idris?(model==="lin"?(2*ginc).toFixed(1):2*ginc):null;
   const valCell=`<span class="val">${fmt(sp,v)}<span class="unit">${unit||(model==="lin"?"":" pts")}</span>`+(idris?` <span class="idr">(+${idrAdd})</span>`:``)+`</span>`;
-  const per=model==="lin"?`smooth`:`+1 / ${spt%1?spt.toFixed(2):spt}`;
+  const per=model==="lin"?`~${spt} <span class="unit">/+1%</span>`:`+1 / ${spt%1?spt.toFixed(2):spt}`;
   return `<tr><td><span class="name">${name}</span> <span class="eff">${eff}</span></td>
-    <td style="text-align:right">${valCell}</td><td class="c-per per">${per}</td><td class="next">${nextTier(sp,skill)}</td></tr>`;}
+    <td style="text-align:right">${valCell}</td><td class="c-per per">${per}</td><td class="next">${nextTier(sp,skill)}</td>${retCell(sp)}</tr>`;}
 function gearRows(list){return list.map(([n,slot,v])=>`<tr><td>${n}<div class="slot">${slot}</div></td><td class="gv">+${v}</td></tr>`).join("");}
 function render(){
   const c=combined(),idris=$("idrisT").checked,hbOn=$("hbT").checked;
