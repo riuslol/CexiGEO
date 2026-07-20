@@ -125,6 +125,13 @@
   .stout:last-child{border-bottom:none}
   .stout .k{color:var(--dim);font-size:13px} .stout .v{font-family:var(--mono);font-weight:700;font-size:17px;color:var(--good)}
   .stbig{font-family:var(--mono);font-weight:800;font-size:30px;color:var(--accent)}
+  .gridbox{margin-top:14px}
+  .ghdr{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin-bottom:8px}
+  .gwrap{display:flex;flex-wrap:wrap;gap:6px}
+  .gchip{font-family:var(--mono);font-size:12px;padding:4px 9px;border-radius:7px;border:1px solid var(--line);color:var(--dim)}
+  .gchip b{color:var(--ink);font-weight:700}
+  .gchip.gfirst{border-color:var(--good);background:rgba(99,230,168,.12);color:var(--good)} .gchip.gfirst b{color:var(--good)}
+  .gchip.gover{opacity:.5}
   @media(max-width:660px){.eff{display:none} th.h-per,td.c-per{display:none}} @media(max-width:520px){th.h-ret,td.c-ret{display:none}}
 </style>
 </head>
@@ -138,6 +145,7 @@
     <button class="tab active" data-t="geo">Geomancy</button>
     <button class="tab" data-t="sc">Skillchains</button>
     <button class="tab" data-t="stats">Store TP</button>
+    <button class="tab" data-t="wsd">WS Damage</button>
   </div>
   <div class="tabpane active" id="pane-geo">
   <div class="controls">
@@ -156,6 +164,7 @@
       <label class="toggle"><input type="checkbox" id="hbT" checked> Handbell equipped <span style="color:var(--dim);font-size:12px">(needed for Handbell skill to count)</span></label>
       <label class="toggle"><input type="checkbox" id="idrisT"> <span class="idris">Idris (+2 tiers)</span></label>
       <button class="btn" id="maxbtn">⚡ Load max-skill build</button>
+      <button class="btn" id="sharebtn" style="margin-left:8px">🔗 Copy link</button>
     </div>
   </div>
 
@@ -255,6 +264,7 @@
           <div class="stout"><span class="k">Hits to Weapon Skill (1000 TP)</span><span class="v" id="s_hits"></span></div>
         </div>
       </div>
+      <div class="scwrap gridbox" id="s_grid"></div>
     </div>
 
     <div class="stpane" id="st-dual" style="display:none">
@@ -272,6 +282,7 @@
           <div class="stout"><span class="k">Rounds to WS (1000 TP)</span><span class="v" id="d_hits"></span></div>
         </div>
       </div>
+      <div class="scwrap gridbox" id="d_grid"></div>
     </div>
 
     <div class="stpane" id="st-h2h" style="display:none">
@@ -288,6 +299,7 @@
           <div class="stout"><span class="k">Rounds to WS (1000 TP)</span><span class="v" id="h_hits"></span></div>
         </div>
       </div>
+      <div class="scwrap gridbox" id="h_grid"></div>
     </div>
 
     <div class="formulas" style="margin-top:14px"><h3>Base TP by delay (classic era formula)</h3>
@@ -299,6 +311,32 @@
       <div class="frow"><span class="k">Store TP</span><code>TP/hit = floor( baseTP &times; (1 + StoreTP &divide; 100) )</code></div>
     </div>
     <div class="tag" style="margin-top:6px">TP on the 0&ndash;3000 scale (Weapon Skill at 1000), matching current era servers &mdash; divide by 10 if your client shows 0&ndash;300%. Base TP truncates to a whole number, then Store TP is applied and truncated again.</div>
+  </div>
+
+  <div class="tabpane" id="pane-wsd">
+    <div class="stgrid">
+      <div class="scwrap"><h3>Weapon skill</h3>
+        <div class="filters">
+          <select id="w_ws"></select>
+          <select id="w_tp"><option value="0">1000 TP</option><option value="1">2000 TP</option><option value="2" selected>3000 TP</option></select>
+        </div>
+        <div id="w_info" class="tag" style="margin:2px 0 12px"></div>
+        <div id="w_stats"></div>
+        <div class="strow"><label>Weapon base DMG</label><input class="stin" id="w_dmg" type="number" value="100"></div>
+        <div class="strow" style="margin:10px 0 2px"><label>pDIF (Attack &divide; Defense)</label><span class="v" id="w_crlbl" style="font-size:15px">1.50</span></div>
+        <input type="range" id="w_crs" min="0.5" max="3.5" step="0.05" value="1.5" style="width:100%;accent-color:var(--accent)">
+        <div class="cap" style="margin-top:5px">&asymp;1.0 even fight &middot; &asymp;2.0 you out-gear it &middot; 3.0+ trivial. You can&rsquo;t see a mob&rsquo;s defense &mdash; slide to taste. It cancels out when comparing skills, so rank WS by <b>Base damage</b>.</div>
+      </div>
+      <div class="scwrap"><h3>Result</h3>
+        <div style="text-align:center;margin:6px 0 14px"><span class="stbig" id="w_out">&mdash;</span> <span class="cap">est. WS damage</span></div>
+        <div class="stout"><span class="k">Base damage (exact &mdash; compare here)</span><span class="v" id="w_base"></span></div>
+        <div class="stout"><span class="k">WSC (stat contribution)</span><span class="v" id="w_wsc"></span></div>
+        <div class="stout"><span class="k">fSTR</span><span class="v" id="w_fstr"></span></div>
+        <div class="stout"><span class="k">fTP (at TP)</span><span class="v" id="w_ftp"></span></div>
+        <div class="stout"><span class="k">Effective pDIF (&times; WS Atk mod)</span><span class="v" id="w_cr"></span></div>
+      </div>
+    </div>
+    <div class="tag" style="margin-top:10px">Physical WS only. <b>Base damage</b> = (weapon DMG + fSTR + WSC) &times; fTP (first hit; all hits for the four fTP-replicating WS: Resolution, Stardiver, Blade: Shun, Last Stand) &mdash; needs no mob data, and is what you compare skills by. <b>Est. WS damage</b> multiplies it by your pDIF &times; the WS&rsquo;s own Attack modifier &mdash; a ballpark before pDIF variance and crits. Target VIT is assumed ~100 (barely moves fSTR). CEXI uses pre-Adoulin fTP; relic/mythic weapons add 10% to their own WS.</div>
   </div>
 
   <div class="foot">Endpoints: SE dev data (Camate). Model verified in-game: Fury, Barrier, Refresh, Regen, Precision, CHR.</div>
@@ -357,6 +395,7 @@ function render(){
   $("combv").textContent=c.total; $("eqv").textContent=`${c.geo} + ${c.hb}`;
   $("buffs").innerHTML=BUFFS.map(sp=>row(sp,c.total,idris)).join("");
   $("debuffs").innerHTML=DEBUFFS.map(sp=>row(sp,c.total,idris)).join("");
+  if(window.updateHash)updateHash();
 }
 // gear (static)
 $("g_plus").innerHTML=gearRows(GEAR_PLUS);
@@ -693,7 +732,7 @@ const SCRESULTS=[...new Set(Object.values(SC).flatMap(o=>Object.values(o.c)))].s
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
   document.querySelectorAll(".tabpane").forEach(x=>x.classList.remove("active"));
-  t.classList.add("active"); document.getElementById("pane-"+t.dataset.t).classList.add("active");
+  t.classList.add("active"); document.getElementById("pane-"+t.dataset.t).classList.add("active"); updateHash();
 });
 document.querySelectorAll(".scmode").forEach(m=>m.onclick=()=>{
   document.querySelectorAll(".scmode").forEach(x=>x.classList.remove("active"));
@@ -716,14 +755,21 @@ function baseTP(delay){let x;
 }
 const withStore=(bt,stp)=>Math.floor(bt*(1+stp/100));
 const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+function tpGrid(id,tp,label){const el=document.getElementById(id); if(!el)return;
+  if(!tp||tp<=0){el.innerHTML=""; return;}
+  const N=Math.min(15,Math.max(7,Math.ceil(3000/tp)));
+  let chips="";
+  for(let n=1;n<=N;n++){const cum=tp*n, first=cum>=1000&&tp*(n-1)<1000;
+    chips+=`<span class="gchip${cum>=1000?(first?' gfirst':' gover'):''}">${n} <b>${cum}</b></span>`;}
+  el.innerHTML=`<div class="ghdr">Cumulative TP by ${label} <span style="text-transform:none">(green = WS ready at 1000)</span></div><div class="gwrap">${chips}</div>`;}
 function calcSingle(){const d=gvs("s_delay"),stp=gvs("s_stp"),bt=baseTP(d),tp=withStore(bt,stp);
-  setT("s_base",bt); setT("s_hit",tp); setT("s_hits",tp>0?Math.ceil(1000/tp):"\u2014");}
+  setT("s_base",bt); setT("s_hit",tp); setT("s_hits",tp>0?Math.ceil(1000/tp):"\u2014"); tpGrid("s_grid",tp,"hit");}
 function calcDual(){const m=gvs("d_main"),su=gvs("d_sub"),dw=gvs("d_dw"),stp=gvs("d_stp");
   const ph=(m+su)*(1-dw/100)/2,bt=baseTP(ph),tp=withStore(bt,stp),round=tp*2;
-  setT("d_perhand",ph.toFixed(0)); setT("d_hit",tp); setT("d_round",round); setT("d_hits",round>0?Math.ceil(1000/round):"\u2014");}
+  setT("d_perhand",ph.toFixed(0)); setT("d_hit",tp); setT("d_round",round); setT("d_hits",round>0?Math.ceil(1000/round):"\u2014"); tpGrid("d_grid",round,"round");}
 function calcH2H(){const d=gvs("h_delay"),ma=gvs("h_ma"),stp=gvs("h_stp"),eff=Math.max(1,d-ma);
   const bt=baseTP(eff),tp=withStore(bt,stp),round=tp*2;
-  setT("h_eff",eff); setT("h_hit",tp); setT("h_round",round); setT("h_hits",round>0?Math.ceil(1000/round):"\u2014");}
+  setT("h_eff",eff); setT("h_hit",tp); setT("h_round",round); setT("h_hits",round>0?Math.ceil(1000/round):"\u2014"); tpGrid("h_grid",round,"round");}
 ["s_delay","s_stp"].forEach(id=>document.getElementById(id).addEventListener("input",calcSingle));
 ["d_main","d_sub","d_dw","d_stp"].forEach(id=>document.getElementById(id).addEventListener("input",calcDual));
 ["h_delay","h_ma","h_stp"].forEach(id=>document.getElementById(id).addEventListener("input",calcH2H));
@@ -733,6 +779,206 @@ document.querySelectorAll(".stmode").forEach(m=>m.onclick=()=>{
   m.classList.add("active"); document.getElementById("st-"+m.dataset.m).style.display="block";
 });
 calcSingle(); calcDual(); calcH2H();
+
+/* ===== save / share build via URL ===== */
+function buildHash(){
+  const tab=(document.querySelector(".tab.active")||{}).dataset; const t=tab?tab.t:"geo";
+  const p=new URLSearchParams();
+  p.set("t",t); p.set("g",$("geo").value); p.set("h",$("hb").value);
+  p.set("hb",$("hbT").checked?1:0); p.set("id",$("idrisT").checked?1:0);
+  return "#"+p.toString();
+}
+function updateHash(){ try{history.replaceState(null,"",buildHash());}catch(e){} }
+function applyHash(){
+  if(!location.hash||location.hash.length<2) return;
+  const p=new URLSearchParams(location.hash.slice(1));
+  if(p.has("g")) $("geo").value=p.get("g");
+  if(p.has("h")) $("hb").value=p.get("h");
+  if(p.has("hb")) $("hbT").checked=p.get("hb")==="1";
+  if(p.has("id")) $("idrisT").checked=p.get("id")==="1";
+  render();
+  if(p.has("t")){ const b=document.querySelector('.tab[data-t="'+p.get("t")+'"]'); if(b)b.click(); }
+}
+(function(){ const sb=document.getElementById("sharebtn"); if(!sb)return;
+  sb.onclick=()=>{ updateHash(); const url=location.href;
+    const done=()=>{ sb.textContent="Copied!"; setTimeout(()=>{sb.textContent="🔗 Copy link";},1400); };
+    try{ navigator.clipboard.writeText(url).then(done,done); }catch(e){ done(); } };
+})();
+applyHash();
+
+/* ===== WS Damage tab ===== */
+const WSD=[
+["Apex Arrow","Archery",{AGI:0.95},"95% AGI",5.65,false,15,35,50,1,false,1],
+["Arching Arrow","Archery",{AGI:0.5,STR:0.2},"50% AGI / 20% STR",3.5,false,10,30,50,1,false,1],
+["Blast Arrow","Archery",{AGI:0.35,STR:0.2},"35% AGI / 20% STR",2,false,30,60,90,1,false,1],
+["Dulling Arrow","Archery",{AGI:0.25,STR:0.16},"25% AGI / 16% STR",1,false,10,30,50,1,false,1],
+["Empyreal Arrow","Archery",{AGI:0.6,STR:0.6},"60% AGI / 60% STR",3.1,true,3.1,3.15,3.2,1,false,2],
+["Namas Arrow","Archery",{STR:0.5,AGI:0.5},"50% STR / 50% AGI",2.75,false,20,40,60,1,false,1.5],
+["Piercing Arrow","Archery",{AGI:0.25,STR:0.16},"25% AGI / 16% STR",1,false,0,35,50,1,false,1],
+["Refulgent Arrow","Archery",{STR:0.95},"95% STR",3,true,3,4.25,5,2,false,1],
+["Sidewinder","Archery",{AGI:0.25,STR:0.16},"25% AGI / 16% STR",5,false,-50,0,0,1,false,1],
+["Avalanche Axe","Axe",{STR:0.3},"30% STR",1.5,true,1.5,2,2.5,1,false,1],
+["Bora Axe","Axe",{DEX:1.0},"100% DEX",1,false,33,67,100,1,false,1],
+["Calamity","Axe",{STR:0.5,VIT:0.5},"50% STR / 50% VIT",1,true,1,1.5,4,1,false,1],
+["Decimation","Axe",{STR:0.5},"50% STR",2.25,false,30,60,90,3,false,1],
+["Gale Axe","Axe",{STR:0.3},"30% STR",1,false,60,60,60,1,false,1],
+["Mistral Axe","Axe",{STR:0.5},"50% STR",2.5,true,2.5,3,3.5,1,false,1],
+["Onslaught","Axe",{DEX:0.9},"90% DEX",5.75,false,20,40,60,1,false,1.75],
+["Raging Axe","Axe",{STR:0.3},"30% STR",1,true,1,1.5,2,2,false,1],
+["Rampage","Axe",{STR:0.3},"30% STR",0.5,false,10,30,50,5,false,1],
+["Ruinator","Axe",{STR:0.75},"75% STR",5,false,30,60,90,4,false,2],
+["Smash Axe","Axe",{STR:1.0},"100% STR",1,false,2,4,6,1,false,1],
+["Spinning Axe","Axe",{STR:0.35},"35% STR",2,true,2,2.5,3,1,false,1],
+["Black Halo","Club",{MND:0.75,STR:0.75},"75% MND / 75% STR",3.25,true,3.25,3.3,3.35,2,false,1.5],
+["Brainshaker","Club",{STR:0.3},"30% STR",1,false,2,4,6,1,false,1],
+["Exudation","Club",{INT:0.95,MND:0.95},"95% INT / 95% MND",5.5,true,5.5,5.6,5.7,1,false,1],
+["Hexa Strike","Club",{STR:0.2,MND:0.2},"20% STR / 20% MND",1,false,10,30,50,6,false,1],
+["Judgment","Club",{STR:0.32,MND:0.32},"32% STR / 32% MND",2,true,2,2.5,4,1,false,1],
+["Mystic Boon","Club",{MND:0.95,STR:0.95},"95% MND / 95% STR",5.5,true,5.5,5.6,5.7,1,false,1],
+["Randgrith","Club",{STR:0.85,MND:0.85},"85% STR / 85% MND",5.5,false,20,40,60,1,false,1.25],
+["Realmrazer","Club",{MND:0.85},"85% MND",6,false,0,30,60,7,false,1.5],
+["Skullbreaker","Club",{STR:0.3},"30% STR",1,false,null,null,null,1,false,1],
+["True Strike","Club",{STR:1.0},"100% STR",1,false,-50,-50,-50,1,false,2],
+["Dancing Edge","Dagger",{DEX:0.3,CHR:0.4},"30% DEX / 40% CHR",1.1875,false,0,30,60,5,false,1],
+["Evisceration","Dagger",{DEX:0.5},"50% DEX",2,false,10,30,50,5,false,1],
+["Exenterator","Dagger",{AGI:0.95},"95% AGI",5.5,false,90,180,270,4,false,1.66],
+["Mandalic Stab","Dagger",{DEX:0.75},"75% DEX",2,true,2,2.13,2.5,1,false,1.66],
+["Mercy Stroke","Dagger",{STR:0.8},"80% STR",3,false,20,40,60,1,false,1.5],
+["Mordant Rime","Dagger",{CHR:0.95,DEX:0.95},"95% CHR / 95% DEX",5,false,33,67,100,2,false,1],
+["Pyrrhic Kleos","Dagger",{STR:0.8,DEX:0.8},"80% STR / 80% DEX",3.5,false,60,120,180,4,false,1],
+["Shadowstitch","Dagger",{CHR:0.3},"30% CHR",1,false,33,67,100,1,false,1],
+["Shark Bite","Dagger",{DEX:0.6,AGI:0.6},"60% DEX / 60% AGI",2,true,2,2.5,3,2,false,1],
+["Viper Bite","Dagger",{DEX:0.6},"60% DEX",1.25,false,90,120,180,1,false,1.5],
+["Wasp Sting","Dagger",{DEX:0.3},"30% DEX",1,false,90,105,120,1,false,1.5],
+["Armor Break","Great Axe",{STR:0.2,VIT:0.2},"20% STR / 20% VIT",1,false,180,360,540,1,false,1],
+["Fell Cleave","Great Axe",{STR:0.6},"60% STR",2.5,false,null,null,null,1,false,1],
+["Full Break","Great Axe",{STR:0.5,VIT:0.5},"50% STR / 50% VIT",1,false,180,360,720,1,false,1],
+["Iron Tempest","Great Axe",{STR:0.3},"30% STR",1,false,0,100,250,1,false,1],
+["Keen Edge","Great Axe",{STR:0.35},"35% STR",1,false,30,60,90,1,false,1],
+["King's Justice","Great Axe",{STR:0.7},"70% STR",2.5,true,2.5,3.75,5,3,false,1],
+["Metatron Torment","Great Axe",{STR:0.8},"80% STR",3.75,false,20,40,60,1,false,1.75],
+["Raging Rush","Great Axe",{STR:0.5},"50% STR",1,false,10,30,50,3,false,1],
+["Shield Break","Great Axe",{STR:0.2,VIT:0.2},"20% STR / 20% VIT",1,false,180,240,300,1,false,1],
+["Steel Cyclone","Great Axe",{STR:0.6,VIT:0.6},"60% STR / 60% VIT",1.5,true,1.5,1.75,3,1,false,1.66],
+["Sturmwind","Great Axe",{STR:0.3},"30% STR",1,false,0,100,250,2,false,1],
+["Upheaval","Great Axe",{VIT:0.75,STR:0.75},"75% VIT / 75% STR",4.7,false,null,null,null,4,false,1],
+["Weapon Break","Great Axe",{STR:0.32,VIT:0.32},"32% STR / 32% VIT",1,false,180,240,300,1,false,1],
+["Tachi: Ageha","Great Katana",{CHR:0.95,STR:0.3},"95% CHR / 30% STR",2.8,false,null,null,null,1,false,1],
+["Tachi: Enpi","Great Katana",{STR:0.3},"30% STR",1,true,1,1.5,2,2,false,1],
+["Tachi: Gekko","Great Katana",{STR:0.95},"95% STR",1.5625,true,1.5625,1.88,2.5,1,false,2],
+["Tachi: Hobaku","Great Katana",{STR:0.3},"30% STR",1,false,33,67,100,1,false,1],
+["Tachi: Kaiten","Great Katana",{STR:0.8},"80% STR",4.75,false,20,40,60,1,false,1.75],
+["Tachi: Kasha","Great Katana",{STR:0.85},"85% STR",1.5625,true,1.5625,1.88,2.5,1,false,1.33],
+["Tachi: Rana","Great Katana",{STR:0.9},"90% STR",5.25,false,0,30,60,3,false,1],
+["Tachi: Shoha","Great Katana",{STR:0.75},"75% STR",5.1,false,null,null,null,2,false,1.75],
+["Tachi: Yukikaze","Great Katana",{STR:0.75},"75% STR",1.5625,true,1.5625,1.88,2.5,1,false,1.33],
+["Crescent Moon","Great Sword",{STR:0.35},"35% STR",1,true,1,1.75,2.5,1,false,1],
+["Dimidiation","Great Sword",{DEX:0.95},"95% DEX",5.3,true,5.3,5.45,5.6,2,false,1.5],
+["Ground Strike","Great Sword",{STR:0.8,INT:0.8},"80% STR / 80% INT",1.5,true,1.5,3,5,1,false,1.75],
+["Hard Slash","Great Sword",{STR:0.3},"30% STR",1.5,true,1.5,1.75,2,1,false,1],
+["Power Slash","Great Sword",{STR:0.2,VIT:0.2},"20% STR / 20% VIT",1,false,20,40,60,1,false,1],
+["Resolution","Great Sword",{STR:0.75},"75% STR",2,false,null,null,null,5,true,0.85],
+["Scourge","Great Sword",{STR:0.5,VIT:0.5},"50% STR / 50% VIT",3.5,false,20,40,60,1,false,1.75],
+["Shockwave","Great Sword",{STR:0.3,MND:0.3},"30% STR / 30% MND",1,false,60,120,180,1,false,1],
+["Sickle Moon","Great Sword",{STR:0.2,AGI:0.2},"20% STR / 20% AGI",1.5,true,1.5,2,2.75,2,false,1],
+["Spinning Slash","Great Sword",{STR:0.3,INT:0.3},"30% STR / 30% INT",2.5,true,2.5,3,3.5,1,false,1.5],
+["Ascetic's Fury","Hand-to-Hand",{STR:0.75,VIT:0.75},"75% STR / 75% VIT",4,false,10,20,40,2,false,1],
+["Asuran Fists","Hand-to-Hand",{STR:0.5,VIT:0.5},"50% STR / 50% VIT",1,false,0,30,60,8,false,1],
+["Backhand Blow","Hand-to-Hand",{STR:0.3,DEX:0.3},"30% STR / 30% DEX",1,false,40,60,80,1,false,1],
+["Combo","Hand-to-Hand",{STR:0.2,DEX:0.2},"20% STR / 20% DEX",1,true,1,1.5,2,3,false,1],
+["Dragon Kick","Hand-to-Hand",{STR:0.5,VIT:0.5},"50% STR / 50% VIT",2,true,2,2.5,3.5,2,false,1],
+["Final Heaven","Hand-to-Hand",{VIT:0.8},"80% VIT",5.75,false,20,40,60,1,false,1.75],
+["Howling Fist","Hand-to-Hand",{VIT:0.5,STR:0.2},"50% VIT / 20% STR",2.5,true,2.5,2.75,3,2,false,1.5],
+["One Inch Punch","Hand-to-Hand",{VIT:0.4},"40% VIT",1,false,0,30,50,1,false,1],
+["Raging Fists","Hand-to-Hand",{STR:0.2,DEX:0.2},"20% STR / 20% DEX",1,true,1,1.5,2,5,false,1],
+["Shijin Spiral","Hand-to-Hand",{DEX:0.95},"95% DEX",6.5,false,18,21,24,5,false,1.25],
+["Shoulder Tackle","Hand-to-Hand",{VIT:0.3},"30% VIT",1,false,2,4,6,1,false,1],
+["Spinning Attack","Hand-to-Hand",{STR:0.35},"35% STR",1,false,null,null,null,2,false,1],
+["Stringing Pummel","Hand-to-Hand",{STR:0.75,VIT:0.75},"75% STR / 75% VIT",2,false,15,30,45,6,false,1],
+["Tornado Kick","Hand-to-Hand",{STR:0.6,VIT:0.6},"60% STR / 60% VIT",2.25,true,2.25,2.75,3.5,3,false,1],
+["Blade: Jin","Katana",{STR:0.5,DEX:0.5},"50% STR / 50% DEX",1,false,10,30,50,3,false,1],
+["Blade: Kamu","Katana",{STR:0.8,INT:0.8},"80% STR / 80% INT",4.5,false,60,120,180,1,false,1.3],
+["Blade: Ku","Katana",{STR:0.5,DEX:0.5},"50% STR / 50% DEX",1.75,false,30,60,90,5,false,1],
+["Blade: Metsu","Katana",{DEX:0.85},"85% DEX",5.75,false,20,40,60,1,false,1.5],
+["Blade: Retsu","Katana",{DEX:0.2,STR:0.2},"20% DEX / 20% STR",1,false,30,60,120,2,false,1],
+["Blade: Rin","Katana",{STR:0.2,DEX:0.2},"20% STR / 20% DEX",1,false,30,60,90,1,false,1],
+["Blade: Shun","Katana",{DEX:0.85},"85% DEX",2,false,25,75,100,5,true,1],
+["Blade: Ten","Katana",{STR:0.5,DEX:0.5},"50% STR / 50% DEX",3,true,3,3.25,3.75,1,false,1],
+["Blast Shot","Marksmanship",{AGI:0.55},"55% AGI",2,false,30,60,90,1,false,1],
+["Coronach","Marksmanship",{DEX:0.5,AGI:0.5},"50% DEX / 50% AGI",3,false,20,40,60,1,false,1.5],
+["Detonator","Marksmanship",{AGI:0.6},"60% AGI",1.5,true,1.5,2,2.5,1,false,2],
+["Heavy Shot","Marksmanship",{AGI:0.7},"70% AGI",3.5,false,10,30,50,1,false,1],
+["Last Stand","Marksmanship",{AGI:0.87},"87% AGI",3.25,true,3.25,3.5,4,2,true,1],
+["Numbing Shot","Marksmanship",{AGI:0.8},"80% AGI",3,false,60,120,180,1,false,1],
+["Slug Shot","Marksmanship",{AGI:0.3},"30% AGI",5,false,-50,0,0,1,false,1],
+["Sniper Shot","Marksmanship",{AGI:0.3},"30% AGI",1,false,null,null,null,1,false,1],
+["Split Shot","Marksmanship",{AGI:0.3},"30% AGI",1,false,0,35,50,1,false,1],
+["Double Thrust","Polearm",{STR:0.3},"30% STR",1,true,1,1.5,2,2,false,1],
+["Drakesbane","Polearm",{STR:0.6},"60% STR",1.5,false,10,30,50,4,false,1.125],
+["Geirskogul","Polearm",{DEX:0.8,AGI:0.4},"80% DEX / 40% AGI",3,false,20,40,60,1,false,1.5],
+["Impulse Drive","Polearm",{STR:0.75},"75% STR",2.5,true,2.5,2.75,3,2,false,1],
+["Leg Sweep","Polearm",{STR:0.3},"30% STR",1,false,33,67,100,1,false,1],
+["Penta Thrust","Polearm",{STR:0.2,DEX:0.2},"20% STR / 20% DEX",1,false,0,30,60,5,false,0.875],
+["Skewer","Polearm",{STR:0.35},"35% STR",1,false,10,30,50,3,false,1],
+["Sonic Thrust","Polearm",{STR:0.3,DEX:0.3},"30% STR / 30% DEX",3,true,3,3.25,3.5,1,false,1],
+["Stardiver","Polearm",{STR:0.75},"75% STR",1.92,false,null,null,null,4,true,1],
+["Vorpal Thrust","Polearm",{STR:0.2,AGI:0.2},"20% STR / 20% AGI",1,false,30,60,90,1,false,1],
+["Wheeling Thrust","Polearm",{STR:0.5},"50% STR",1.75,false,50,75,100,1,false,1],
+["Catastrophe","Scythe",{STR:0.6,INT:0.6},"60% STR / 60% INT",2.75,false,20,40,60,1,false,1.5],
+["Cross Reaper","Scythe",{STR:0.5,MND:0.5},"50% STR / 50% MND",2,true,2,4,7,2,false,1],
+["Entropy","Scythe",{INT:0.95,STR:0.25},"95% INT / 25% STR",5.5,false,null,null,null,4,false,1],
+["Guillotine","Scythe",{MND:0.25,STR:0.25},"25% MND / 25% STR",0.875,false,60,120,180,4,false,1],
+["Insurgency","Scythe",{STR:0.3,INT:0.3},"30% STR / 30% INT",3,true,3,4.5,6,4,false,1.25],
+["Nightmare Scythe","Scythe",{STR:0.3,MND:0.3},"30% STR / 30% MND",1,false,60,120,180,1,false,1],
+["Slice","Scythe",{STR:0.3},"30% STR",1.5,true,1.5,1.75,2,1,false,1],
+["Spinning Scythe","Scythe",{STR:0.3},"30% STR",1,false,null,null,null,1,false,1],
+["Spiral Hell","Scythe",{STR:0.65,INT:0.65},"65% STR / 65% INT",1.375,true,1.375,2.75,4.75,1,false,1],
+["Vorpal Scythe","Scythe",{STR:0.35},"35% STR",1,false,30,60,90,1,false,1],
+["Full Swing","Staff",{STR:0.5},"50% STR",1,true,1,3,5,1,false,1],
+["Gate of Tartarus","Staff",{CHR:0.9},"90% CHR",3,false,20,40,60,1,false,1.75],
+["Heavy Swing","Staff",{STR:0.3},"30% STR",1,true,1,1.25,2.25,1,false,1],
+["Retribution","Staff",{MND:0.9,STR:0.9},"90% MND / 90% STR",2,true,2,2.5,3,1,false,1.5],
+["Shattersoul","Staff",{INT:0.95},"95% INT",5.5,false,120,120,120,3,false,2],
+["Shell Crusher","Staff",{STR:0.35},"35% STR",1,false,180,360,720,1,false,1],
+["Spirit Taker","Staff",{INT:0.5,MND:0.5},"50% INT / 50% MND",1,true,1,1.5,2,1,false,1],
+["Circle Blade","Sword",{STR:1.0},"100% STR",1,false,null,null,null,1,false,1],
+["Death Blossom","Sword",{MND:0.85,STR:0.5},"85% MND / 50% STR",4,false,null,null,null,3,false,1],
+["Expiacion","Sword",{STR:0.95,INT:0.95,DEX:0.2},"95% STR / 95% INT / 20% DEX",5.5,true,5.5,5.75,6,2,false,1],
+["Fast Blade","Sword",{STR:0.2,DEX:0.2},"20% STR / 20% DEX",1,true,1,1.5,2,2,false,1],
+["Flat Blade","Sword",{STR:0.3},"30% STR",1,false,33,67,100,1,false,1],
+["Glory Slash","Sword",{STR:0.3},"30% STR",3,true,3,3.5,4,1,false,1],
+["Knights of Round","Sword",{STR:0.65,MND:0.65},"65% STR / 65% MND",3,false,20,40,60,1,false,1],
+["Requiescat","Sword",{MND:0.85},"85% MND",6,false,null,null,null,5,false,1.75],
+["Savage Blade","Sword",{STR:0.8,MND:0.8},"80% STR / 80% MND",4,true,4,4.25,4.5,2,false,1],
+["Swift Blade","Sword",{STR:0.3,MND:0.3},"30% STR / 30% MND",1.5,false,30,60,90,3,false,1],
+["Vorpal Blade","Sword",{STR:0.3},"30% STR",1,false,10,30,50,4,false,1]
+].map(a=>({n:a[0],wt:a[1],mod:a[2],mr:a[3],flat:a[4],sc:a[5],f:[a[6],a[7],a[8]],h:a[9],rp:a[10],am:a[11]}));
+const wStats={STR:0,DEX:0,VIT:0,AGI:0,INT:0,MND:0,CHR:0};
+(function(){ const sel=document.getElementById("w_ws"); if(!sel)return;
+  let last=null,out="";
+  for(let i=0;i<WSD.length;i++){const w=WSD[i]; if(w.wt!==last){ if(last!==null)out+="</optgroup>"; out+=`<optgroup label="${w.wt}">`; last=w.wt;} out+=`<option value="${i}">${w.n}</option>`;}
+  sel.innerHTML=out+"</optgroup>";
+  function renderStats(w){ const need=["STR",...Object.keys(w.mod).filter(x=>x!=="STR")];
+    document.getElementById("w_stats").innerHTML=need.map(st=>`<div class="strow"><label>${st}${w.mod[st]?` <span class="cap">${Math.round(w.mod[st]*100)}%</span>`:` <span class="cap">for fSTR</span>`}</label><input class="stin wstat" data-s="${st}" type="number" value="${wStats[st]||0}"></div>`).join("");
+    document.querySelectorAll("#w_stats .wstat").forEach(inp=>inp.oninput=()=>{wStats[inp.dataset.s]=+inp.value||0; calc();});
+  }
+  function calc(){ const w=WSD[+sel.value]; if(!w)return; const tpi=+document.getElementById("w_tp").value;
+    const D=gvs("w_dmg"), vit=100, STR=wStats.STR||0;
+    let fstr=(STR-vit+4)/4; fstr=Math.max(-(D+8),Math.min(D+8,fstr));
+    let wsc=0; for(const st in w.mod) wsc+=w.mod[st]*(wStats[st]||0);
+    const ftp = w.sc ? w.f[tpi] : w.flat;
+    const base=D+fstr+wsc, mult = w.rp ? ftp*w.h : ftp+(w.h-1), raw=base*mult;
+    const cr=+document.getElementById("w_crs").value, eff=cr*w.am, est=raw*eff;
+    setT("w_base",Math.round(raw)); setT("w_wsc",wsc.toFixed(1)); setT("w_fstr",fstr.toFixed(1));
+    setT("w_ftp",ftp!=null?ftp:"—"); setT("w_cr",eff.toFixed(2)); setT("w_out",Math.round(est));
+    setT("w_info",`${w.wt} · ${w.mr||"no stat mod"} · ${w.h} hit${w.h>1?"s":""}${w.rp?" · fTP replicates":""}${w.am!==1?" · Atk×"+w.am:""}`);
+  }
+  sel.onchange=()=>{renderStats(WSD[+sel.value]); calc();};
+  document.getElementById("w_tp").onchange=calc;
+  document.getElementById("w_dmg").addEventListener("input",calc);
+  document.getElementById("w_crs").addEventListener("input",()=>{document.getElementById("w_crlbl").textContent=(+document.getElementById("w_crs").value).toFixed(2); calc();});
+  renderStats(WSD[0]); calc();
+})();
 </script>
 </body>
 </html>
