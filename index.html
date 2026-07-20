@@ -114,6 +114,17 @@
   .filters select,.filters input{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 10px;font-size:14px}
   .sctable{width:100%;border-collapse:collapse} .sctable td,.sctable th{padding:7px 10px;border-bottom:1px solid var(--line);font-size:13px;text-align:left}
   .sctable th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  .stmode{padding:7px 14px;border-radius:9px;background:var(--panel);border:1px solid var(--line);color:var(--dim);cursor:pointer;font-size:13px;font-weight:600}
+  .stmode.active{color:var(--ink);border-color:var(--accent)}
+  .stgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.stgrid{grid-template-columns:1fr}}
+  .strow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:9px 0}
+  .strow label{font-size:14px;color:var(--ink)} .strow .cap{font-size:11px;color:var(--dim)}
+  .stin{width:92px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:6px 8px;font-family:var(--mono);font-size:14px;text-align:right}
+  .stout{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line)}
+  .stout:last-child{border-bottom:none}
+  .stout .k{color:var(--dim);font-size:13px} .stout .v{font-family:var(--mono);font-weight:700;font-size:17px;color:var(--good)}
+  .stbig{font-family:var(--mono);font-weight:800;font-size:30px;color:var(--accent)}
   @media(max-width:660px){.eff{display:none} th.h-per,td.c-per{display:none}} @media(max-width:520px){th.h-ret,td.c-ret{display:none}}
 </style>
 </head>
@@ -126,6 +137,7 @@
   <div class="tabs">
     <button class="tab active" data-t="geo">Geomancy</button>
     <button class="tab" data-t="sc">Skillchains</button>
+    <button class="tab" data-t="stats">Store TP</button>
   </div>
   <div class="tabpane active" id="pane-geo">
   <div class="controls">
@@ -205,6 +217,71 @@
         <table class="sctable"><thead><tr><th>Weapon skill</th><th>Type</th><th>Properties</th></tr></thead><tbody id="lookupbody"></tbody></table>
       </div>
     </div>
+  </div>
+
+  <div class="tabpane" id="pane-stats">
+    <div class="sc-sub">
+      <button class="stmode active" data-m="single">Single wield</button>
+      <button class="stmode" data-m="dual">Dual wield</button>
+      <button class="stmode" data-m="h2h">Hand-to-Hand</button>
+    </div>
+
+    <div class="stpane" id="st-single">
+      <div class="stgrid">
+        <div class="scwrap"><h3>Inputs</h3>
+          <div class="strow"><label>Weapon delay</label><input class="stin" id="s_delay" type="number" value="240"></div>
+          <div class="strow"><label>Store TP %</label><input class="stin" id="s_stp" type="number" value="0"></div>
+        </div>
+        <div class="scwrap"><h3>Result</h3>
+          <div style="text-align:center;margin:6px 0 14px"><span class="stbig" id="s_hit">&mdash;</span> <span class="cap">TP / hit</span></div>
+          <div class="stout"><span class="k">Base TP / hit</span><span class="v" id="s_base"></span></div>
+          <div class="stout"><span class="k">Hits to Weapon Skill (1000 TP)</span><span class="v" id="s_hits"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stpane" id="st-dual" style="display:none">
+      <div class="stgrid">
+        <div class="scwrap"><h3>Inputs</h3>
+          <div class="strow"><label>Main delay</label><input class="stin" id="d_main" type="number" value="240"></div>
+          <div class="strow"><label>Sub delay</label><input class="stin" id="d_sub" type="number" value="240"></div>
+          <div class="strow"><label>Dual Wield %</label><input class="stin" id="d_dw" type="number" value="0"></div>
+          <div class="strow"><label>Store TP %</label><input class="stin" id="d_stp" type="number" value="0"></div>
+        </div>
+        <div class="scwrap"><h3>Result</h3>
+          <div class="stout"><span class="k">Reduced delay / hand</span><span class="v" id="d_perhand"></span></div>
+          <div class="stout"><span class="k">TP / hit</span><span class="v" id="d_hit"></span></div>
+          <div class="stout"><span class="k">TP / round (2 hits)</span><span class="v" id="d_round"></span></div>
+          <div class="stout"><span class="k">Rounds to WS (1000 TP)</span><span class="v" id="d_hits"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stpane" id="st-h2h" style="display:none">
+      <div class="stgrid">
+        <div class="scwrap"><h3>Inputs</h3>
+          <div class="strow"><label>H2H weapon delay <span class="cap">480 barehanded</span></label><input class="stin" id="h_delay" type="number" value="480"></div>
+          <div class="strow"><label>Martial Arts delay &minus;</label><input class="stin" id="h_ma" type="number" value="0"></div>
+          <div class="strow"><label>Store TP %</label><input class="stin" id="h_stp" type="number" value="0"></div>
+        </div>
+        <div class="scwrap"><h3>Result</h3>
+          <div class="stout"><span class="k">Effective delay / fist</span><span class="v" id="h_eff"></span></div>
+          <div class="stout"><span class="k">TP / hit</span><span class="v" id="h_hit"></span></div>
+          <div class="stout"><span class="k">TP / round (2 fists)</span><span class="v" id="h_round"></span></div>
+          <div class="stout"><span class="k">Rounds to WS (1000 TP)</span><span class="v" id="h_hits"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="formulas" style="margin-top:14px"><h3>Base TP by delay (classic era formula)</h3>
+      <div class="frow"><span class="k">&le; 180</span><code>(5.0 + (delay&minus;180)&times;1.5 &divide; 180) &times; 10</code></div>
+      <div class="frow"><span class="k">180 &ndash; 450</span><code>(5.0 + (delay&minus;180)&times;6.5 &divide; 270) &times; 10</code></div>
+      <div class="frow"><span class="k">450 &ndash; 480</span><code>(11.5 + (delay&minus;450)&times;1.5 &divide; 30) &times; 10</code></div>
+      <div class="frow"><span class="k">480 &ndash; 530</span><code>(13.0 + (delay&minus;480)&times;1.5 &divide; 50) &times; 10</code></div>
+      <div class="frow"><span class="k">530 &ndash; 999</span><code>(14.5 + (delay&minus;530)&times;3.5 &divide; 470) &times; 10</code></div>
+      <div class="frow"><span class="k">Store TP</span><code>TP/hit = floor( baseTP &times; (1 + StoreTP &divide; 100) )</code></div>
+    </div>
+    <div class="tag" style="margin-top:6px">TP on the 0&ndash;3000 scale (Weapon Skill at 1000), matching current era servers &mdash; divide by 10 if your client shows 0&ndash;300%. Base TP truncates to a whole number, then Store TP is applied and truncated again.</div>
   </div>
 
   <div class="foot">Endpoints: SE dev data (Camate). Model verified in-game: Fury, Barrier, Refresh, Regen, Precision, CHR.</div>
@@ -588,6 +665,36 @@ document.querySelectorAll(".scmode").forEach(m=>m.onclick=()=>{
 renderChain();
 $("maxbtn").addEventListener("click",()=>{$("geo").value=300; $("hb").value=280; $("hbT").checked=true; render();});
 render();
+
+/* ===== Store TP tab ===== */
+const gvs=id=>{const e=document.getElementById(id);return e?(+e.value||0):0;};
+function baseTP(delay){let x;
+  if(delay<=180)x=5.0+(delay-180)*1.5/180;
+  else if(delay<=450)x=5.0+(delay-180)*6.5/270;
+  else if(delay<=480)x=11.5+(delay-450)*1.5/30;
+  else if(delay<=530)x=13.0+(delay-480)*1.5/50;
+  else x=14.5+(delay-530)*3.5/470;
+  return Math.floor(x*10);
+}
+const withStore=(bt,stp)=>Math.floor(bt*(1+stp/100));
+const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+function calcSingle(){const d=gvs("s_delay"),stp=gvs("s_stp"),bt=baseTP(d),tp=withStore(bt,stp);
+  setT("s_base",bt); setT("s_hit",tp); setT("s_hits",tp>0?Math.ceil(1000/tp):"\u2014");}
+function calcDual(){const m=gvs("d_main"),su=gvs("d_sub"),dw=gvs("d_dw"),stp=gvs("d_stp");
+  const ph=(m+su)*(1-dw/100)/2,bt=baseTP(ph),tp=withStore(bt,stp),round=tp*2;
+  setT("d_perhand",ph.toFixed(0)); setT("d_hit",tp); setT("d_round",round); setT("d_hits",round>0?Math.ceil(1000/round):"\u2014");}
+function calcH2H(){const d=gvs("h_delay"),ma=gvs("h_ma"),stp=gvs("h_stp"),eff=Math.max(1,d-ma);
+  const bt=baseTP(eff),tp=withStore(bt,stp),round=tp*2;
+  setT("h_eff",eff); setT("h_hit",tp); setT("h_round",round); setT("h_hits",round>0?Math.ceil(1000/round):"\u2014");}
+["s_delay","s_stp"].forEach(id=>document.getElementById(id).addEventListener("input",calcSingle));
+["d_main","d_sub","d_dw","d_stp"].forEach(id=>document.getElementById(id).addEventListener("input",calcDual));
+["h_delay","h_ma","h_stp"].forEach(id=>document.getElementById(id).addEventListener("input",calcH2H));
+document.querySelectorAll(".stmode").forEach(m=>m.onclick=()=>{
+  document.querySelectorAll(".stmode").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".stpane").forEach(x=>x.style.display="none");
+  m.classList.add("active"); document.getElementById("st-"+m.dataset.m).style.display="block";
+});
+calcSingle(); calcDual(); calcH2H();
 </script>
 </body>
 </html>
